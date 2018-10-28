@@ -41,8 +41,8 @@ func TestLoginNonExistentUser(t *testing.T) {
 
 	var m map[string]string
 	json.Unmarshal(response.Body.Bytes(), &m)
-	if m["error"] != "Product not found" {
-		t.Errorf("Expected the 'error' key of the response to be set to 'Product not found'. Got '%s'", m["error"])
+	if m["error"] != "err" {
+		t.Errorf("Expected the 'error' key of the response to be set to 'err'. Got '%s'", m["error"])
 	}
 }
 
@@ -50,7 +50,7 @@ const tableCreationQuery = `CREATE TABLE IF NOT EXISTS users
 (
 id SERIAL,
 userid TEXT NOT NULL,
-password TEXT NOT NULL,
+password TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS services 
 (
