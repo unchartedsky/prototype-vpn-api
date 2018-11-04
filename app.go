@@ -89,12 +89,25 @@ func (a *App) putService(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 	if err := s.createService(a.DB); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	respondWithJSON(w, http.StatusOK, map[string]string{"error": "ok"})
 }
-func (a *App) deleteService(w http.ResponseWriter, r *http.Request) {}
+func (a *App) deleteService(w http.ResponseWriter, r *http.Request) {
+	var s service
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&s); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	if err := s.deleteService(a.DB); err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, map[string]string{"error": "ok"})
+}
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
 	respondWithJSON(w, code, map[string]string{"error": message})

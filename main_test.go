@@ -78,6 +78,14 @@ func TestPutAndGetService(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, getResponse.Code)
 }
 
+func TestDelService(t *testing.T) {
+	var reqPayload = []byte(`{"id":1,"name":"test service","userid":"oyt"}`)
+	req, _ := http.NewRequest("DELETE", "/services", bytes.NewBuffer(reqPayload))
+	req.Header.Set("Content-Type", "application/json")
+	res := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, res.Code)
+}
+
 const tableCreationQuery = `CREATE TABLE IF NOT EXISTS users
 (
 id SERIAL,

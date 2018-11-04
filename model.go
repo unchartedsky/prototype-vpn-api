@@ -45,9 +45,13 @@ func (s *service) createService(db *sql.DB) error {
 	return nil
 }
 func (s *service) deleteService(db *sql.DB) error {
-	return errors.New("Not implemented")
+	_, err :=
+		db.Exec("DELETE FROM services WHERE name=$1 and userid=$2", s.NAME, s.USERID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
-
 func getServices(userid string, db *sql.DB) ([]string, error) {
 	var serviceNames []string
 	rows, err :=
