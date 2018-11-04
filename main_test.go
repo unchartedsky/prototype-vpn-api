@@ -32,18 +32,36 @@ func TestMain(m *testing.M) {
 
 func TestLoginNonExistentUser(t *testing.T) {
 	clearTable()
-	var loginReq = []byte(`{"id":"noexist","password":"1234"}`)
+	var loginReq = []byte(`{"userid":"noexist","password":"1234"}`)
 	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(loginReq))
 	req.Header.Set("Content-Type", "application/json")
 	response := executeRequest(req)
 
-	checkResponseCode(t, http.StatusNotFound, response.Code)
+	checkResponseCode(t, http.StatusInternalServerError, response.Code)
 
 	var m map[string]string
 	json.Unmarshal(response.Body.Bytes(), &m)
-	if m["error"] != "err" {
+	if m["error"] != "Invalid User Information" {
 		t.Errorf("Expected the 'error' key of the response to be set to 'err'. Got '%s'", m["error"])
 	}
+}
+
+func TestSignupAndLoginSuccess(t *testing.T) {
+	clearTable()
+	//signup
+	var signUpReq = []byte(`{"id":1,"userid":"oyt","password":"1234"}`)
+	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(signUpReq))
+	req.Header.Set("Content-Type", "application/json")
+	response := executeRequest(req)
+
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var loginReq = []byte(`{"id":1,"userid":"oyt","password":"1234"}`)
+	secondReq, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(loginReq))
+	secondReq.Header.Set("Content-Type", "application/json")
+	secondResponse := executeRequest(secondReq)
+
+	checkResponseCode(t, http.StatusOK, secondResponse.Code)
 }
 
 const tableCreationQuery = `CREATE TABLE IF NOT EXISTS users

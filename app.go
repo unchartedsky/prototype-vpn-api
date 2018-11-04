@@ -42,13 +42,40 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/services", a.deleteService).Methods("DELETE")
 }
 func (a *App) login(w http.ResponseWriter, r *http.Request) {
-	respondWithJSON(w, http.StatusNotFound, map[string]string{"error": "err"})
+	var u user
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&u); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	if err := u.login(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, map[string]string{"error": "ok"})
 }
-func (a *App) signup(w http.ResponseWriter, r *http.Request)        {}
+func (a *App) signup(w http.ResponseWriter, r *http.Request) {
+	var u user
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&u); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	if err := u.signup(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, map[string]string{"error": "ok"})
+}
 func (a *App) getService(w http.ResponseWriter, r *http.Request)    {}
 func (a *App) putService(w http.ResponseWriter, r *http.Request)    {}
 func (a *App) deleteService(w http.ResponseWriter, r *http.Request) {}
 
+func respondWithError(w http.ResponseWriter, code int, message string) {
+	respondWithJSON(w, code, map[string]string{"error": message})
+}
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	response, _ := json.Marshal(payload)
 
