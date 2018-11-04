@@ -34,14 +34,33 @@ func (u *user) signup(db *sql.DB) error {
 		return err
 	}
 	return nil
+}
+
+func (s *service) createService(db *sql.DB) error {
+	_, err :=
+		db.Exec("INSERT INTO services (name,userid) VALUES($1,$2)", s.NAME, s.USERID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (s *service) deleteService(db *sql.DB) error {
 	return errors.New("Not implemented")
 }
-func (s *service) getService(db *sql.DB) error {
-	return errors.New("Not implemented")
-}
-func (u *user) createService(db *sql.DB) error {
-	return errors.New("Not implemented")
-}
-func (u *user) deleteService(db *sql.DB) error {
-	return errors.New("Not implemented")
+
+func getServices(userid string, db *sql.DB) ([]string, error) {
+	var serviceNames []string
+	rows, err :=
+		db.Query("SELECT name FROM services WHERE userid=$1", userid)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		serviceNames = append(serviceNames, name)
+	}
+	return serviceNames, nil
 }

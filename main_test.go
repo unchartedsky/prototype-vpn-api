@@ -64,6 +64,20 @@ func TestSignupAndLoginSuccess(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, secondResponse.Code)
 }
 
+func TestPutAndGetService(t *testing.T) {
+	clearTable()
+	var putReqPayload = []byte(`{"id":1,"name":"test service","userid":"oyt"}`)
+	putReq, _ := http.NewRequest("POST", "/services", bytes.NewBuffer(putReqPayload))
+	putReq.Header.Set("Content-Type", "application/json")
+	putResponse := executeRequest(putReq)
+	checkResponseCode(t, http.StatusOK, putResponse.Code)
+
+	getReq, _ := http.NewRequest("GET", "/services/oyt", bytes.NewBuffer([]byte("")))
+	getResponse := executeRequest(getReq)
+
+	checkResponseCode(t, http.StatusOK, getResponse.Code)
+}
+
 const tableCreationQuery = `CREATE TABLE IF NOT EXISTS users
 (
 id SERIAL,
@@ -74,7 +88,7 @@ CREATE TABLE IF NOT EXISTS services
 (
 id SERIAL,
 name TEXT NOT NULL,
-userid INTEGER NOT NULL
+userid TEXT NOT NULL
 );
 `
 

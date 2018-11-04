@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
@@ -37,7 +38,7 @@ func (a *App) Run(addr string) {
 func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/login", a.login).Methods("POST")
 	a.Router.HandleFunc("/signup", a.signup).Methods("POST")
-	a.Router.HandleFunc("/services/{userid}", a.getService).Methods("GET")
+	a.Router.HandleFunc("/services/{userid}", a.getServices).Methods("GET")
 	a.Router.HandleFunc("/services", a.putService).Methods("POST")
 	a.Router.HandleFunc("/services", a.deleteService).Methods("DELETE")
 }
@@ -69,8 +70,30 @@ func (a *App) signup(w http.ResponseWriter, r *http.Request) {
 	}
 	respondWithJSON(w, http.StatusOK, map[string]string{"error": "ok"})
 }
-func (a *App) getService(w http.ResponseWriter, r *http.Request)    {}
-func (a *App) putService(w http.ResponseWriter, r *http.Request)    {}
+func (a *App) getServices(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	defer r.Body.Close()
+	serviceNames, err := getServices(vars["userid"], a.DB)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, map[string]string{"services": strings.Join(serviceNames, ","), "error": "ok"})
+}
+func (a *App) putService(w http.ResponseWriter, r *http.Request) {
+	var s service
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&s); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	if err := s.createService(a.DB); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, map[string]string{"error": "ok"})
+}
 func (a *App) deleteService(w http.ResponseWriter, r *http.Request) {}
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
