@@ -10,11 +10,13 @@ import (
 
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"gopkg.in/oauth2.v3/server"
 )
 
 type App struct {
-	Router *mux.Router
-	DB     *sql.DB
+	Router      *mux.Router
+	DB          *sql.DB
+	OauthServer *server.Server
 }
 
 func (a *App) Initialize(user, password, dbname string) {
@@ -28,6 +30,7 @@ func (a *App) Initialize(user, password, dbname string) {
 	}
 
 	a.Router = mux.NewRouter()
+	a.OauthServer = oauth_server()
 	a.initializeRoutes()
 
 }
@@ -41,6 +44,18 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/services/{userid}", a.getServices).Methods("GET")
 	a.Router.HandleFunc("/services", a.putService).Methods("POST")
 	a.Router.HandleFunc("/services", a.deleteService).Methods("DELETE")
+	a.Router.HandleFunc("/authorize", a.oauthAuthorize).Methods("POST")
+	a.Router.HandleFunc("/token", a.oauthToken).Methods("GET")
+
+}
+func (a *App) oauthAuthorize(w http.ResponseWriter, r *http.Request) {
+	err := a.OauthServer.HandleAuthorizeRequest(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+}
+func (a *App) oauthToken(w http.ResponseWriter, r *http.Request) {
+	a.OauthServer.HandleTokenRequest(w, r)
 }
 func (a *App) login(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()

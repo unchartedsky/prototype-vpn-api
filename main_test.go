@@ -86,6 +86,17 @@ func TestDelService(t *testing.T) {
 	checkResponseCode(t, http.StatusOK, res.Code)
 }
 
+func TestAuthTokenSuccess(t *testing.T) {
+	getReq, _ := http.NewRequest("GET", "/token?grant_type=client_credentials&client_id=000000&client_secret=999999&scope=read", bytes.NewBuffer([]byte("")))
+	res := executeRequest(getReq)
+	checkResponseCode(t, http.StatusOK, res.Code)
+}
+func TestAuthTokenFail(t *testing.T) {
+	getReq, _ := http.NewRequest("GET", "/token?grant_type=client_credentials&client_id=000000&client_secret=88888&scope=read", bytes.NewBuffer([]byte("")))
+	res := executeRequest(getReq)
+	checkResponseCode(t, http.StatusUnauthorized, res.Code)
+}
+
 const tableCreationQuery = `CREATE TABLE IF NOT EXISTS users
 (
 id SERIAL,
